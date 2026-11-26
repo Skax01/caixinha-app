@@ -8,7 +8,7 @@ Os dados ficam no aparelho (criptografados quando há PIN) e, se você conectar,
 index.html          casca da página + política de segurança (CSP)
 css/main.css        estilos (folha única: base, repaginação e profundidade; tema claro/escuro, celular e desktop)
 js/core.js          lógica pura: validação do estado, migração, cálculos (testável em Node)
-js/vault.js         armazenamento local e criptografia em repouso (AES-GCM + PBKDF2)
+js/vault.js         armazenamento local e criptografia dos dados
 js/ui.js            diálogos, avisos, teclado de PIN
 js/drive.js         backup no Google Drive
 js/views.js         telas e ações (Caixinha, Empréstimos, Painel, Agenda, Ajustes)
@@ -53,7 +53,7 @@ Em Caixinha → Ver relatório: tabela por membro ou mês a mês, com três saí
 Aba **Membros**: cadastro de todas as pessoas da caixinha (nome, apelido, WhatsApp e cotas). Cada membro mostra quantas cotas tem, com − e + para ajustar na hora; tocar no nome edita ou remove. **Cota 0 = só membro** (participa das rifas, mas não aparece nos pagamentos da caixinha). **Adicionar vários** aceita a lista colada, um por linha, no formato `Nome; cotas; WhatsApp` (cotas e WhatsApp são opcionais) e ignora nomes que já existem. Os dados são os mesmos da aba Caixinha: o que muda numa aparece na outra.
 
 ## Rifas (área do administrador)
-**PIN do administrador:** em Ajustes → Administração → *Definir PIN* (6 dígitos). Ele é pedido toda vez que alguém abre as rifas, é independente do PIN do app e só o hash (sal + PBKDF2) é guardado. Ele não vai para o arquivo de backup e não é restaurado ao importar um backup. Sem o PIN do app, ele protege a tela mas não criptografa os dados.
+**PIN do administrador:** em Ajustes → Administração → *Definir PIN* (6 dígitos). Ele é pedido toda vez que alguém abre as rifas, é independente do PIN do app e não vai para o arquivo de backup. Sem o PIN do app, ele protege a tela mas não criptografa os dados.
 
 **Nova rifa:** nome (sugerido como "Rifa de 2026 #01"), total de números (sugerido: cotas dos membros × números por cota, padrão 2), valor por número, data, quantidade de ganhadores (1 a 5) e prêmio de cada posição. Os prêmios já vêm em dinheiro (R$ 500, 250 e 100); para outro tipo de prêmio, escreva o texto no campo (por exemplo "Cesta de Natal"). Em *Mais opções*: números por cota de cada membro (padrão 2), primeiro número (padrão 100), caixinha e se uma pessoa pode ganhar mais de uma vez.
 
