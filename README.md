@@ -21,7 +21,7 @@ tests/core.test.js  testes do núcleo:  node tests/core.test.js
 ```
 
 ## Publicar no GitHub Pages
-1. Crie um repositório e envie **todo o conteúdo desta pasta** (menos `tests/`, se quiser).
+1. Crie um repositório (o GitHub Pages grátis exige repositório **público**; o app não contém segredos, mas nunca suba dados reais) e envie **todo o conteúdo desta pasta** (menos `tests/`, se quiser).
 2. Settings → Pages → Source: *Deploy from a branch*, branch `main`, pasta `/ (root)`.
 3. O endereço será `https://SEUUSUARIO.github.io/NOME/`. O PIN e a criptografia só funcionam em **https** (ou `localhost`).
 4. No iPhone: abra no Safari → Compartilhar → Adicionar à Tela de Início. Use sempre o mesmo (Safari ou ícone): eles não compartilham dados.
@@ -30,14 +30,17 @@ Para testar localmente: `python -m http.server 8765` dentro da pasta e abra `htt
 
 ## Segurança
 - **PIN de 6 dígitos com criptografia de verdade.** Com PIN, os dados são cifrados (AES-GCM, chave derivada do PIN com PBKDF2-SHA-256, 600 mil iterações) e o texto puro é apagado. A chave só existe na memória: ao bloquear, o app descarta os dados da memória e da tela.
-- **Bloqueio automático** após 2 minutos fora da tela ou 5 minutos sem uso, e botão de bloquear no topo. Excluir, desfazer pagamento, exportar e remover o PIN pedem o PIN de novo.
+- **Bloqueio automático** após 2 minutos fora da tela ou 5 minutos sem uso, e botão de bloquear no topo. Excluir, desfazer pagamento, exportar, importar, restaurar do Drive, desconectar o Drive e remover o PIN pedem o PIN de novo.
 - **Esqueci o PIN:** não há recuperação, porque o PIN é a chave. É possível apagar os dados do aparelho e restaurar um backup (arquivo ou Drive).
-- **Limite honesto:** um PIN numérico pode ser descoberto por força bruta por quem copiar o armazenamento do aparelho (as 600 mil iterações encarecem isso). A proteção real contra um atacante dedicado é o bloqueio do próprio aparelho.
+- **Limite honesto:** um PIN numérico pode ser descoberto por força bruta por quem copiar o armazenamento do aparelho (as 600 mil iterações encarecem isso). O limite de tentativas errôneas (espera crescente) só vale na tela do app e não impede quem tem uma cópia do armazenamento. A proteção real contra um atacante dedicado é o bloqueio do próprio aparelho.
 - **Backups e importação são validados.** Tudo que entra (arquivo, Drive, armazenamento) passa por `CX.sanitize()`: tipos, limites e IDs são forçados, chaves perigosas (`__proto__`) são descartadas. Um backup adulterado não consegue injetar HTML/JS.
 - **CSP estrita** (sem scripts nem estilos inline; só o próprio site e o login/API do Google), `referrer` desligado e bloqueio de uso dentro de iframes.
 - **CSV seguro:** células que começam com `=`, `+`, `-` ou `@` são neutralizadas (injeção de fórmula).
 - **Exportar com senha:** gera um arquivo `.cifrado.json` que só abre com a senha escolhida. O arquivo de backup normal contém os dados reais em texto aberto: guarde em lugar seguro.
-- **Google Drive:** escopo `drive.file` (o app só vê os arquivos que ele criou); o token fica só na memória. O backup no Drive **não** é cifrado pelo PIN, ele é protegido pela sua conta Google.
+- **Google Drive:** escopo `drive.file` (o app só vê os arquivos que ele criou); o token fica só na memória. O backup no Drive **não** é cifrado pelo PIN: é um JSON em texto aberto, protegido apenas pela sua conta Google (use verificação em duas etapas). Para ter o arquivo cifrado, use *Exportar com senha*.
+- **Migração de versão antiga:** ao atualizar de um modelo antigo, o app guarda uma cópia dos dados antigos em texto aberto no aparelho (`caixinha:antes-da-v2`) até você ativar o PIN; ativar o PIN apaga essa cópia.
+- **Rifas:** o hash do PIN do administrador não entra no arquivo de backup.
+- **Repositório:** o `.gitignore` bloqueia backups e exportações (`caixinha-*.json`, `.xls`, `.csv`). O ID do cliente Google em `js/config.js` é público por natureza; nunca coloque segredos ou chaves privadas no repositório.
 
 ## Relatórios
 Em Caixinha → Ver relatório: tabela por membro ou mês a mês, com três saídas.
@@ -64,7 +67,6 @@ Entrada discreta no fim de **Ajustes → Administração → Rifas**, fora das a
 ## Nova aparência (ativa)
 
 `css/main.css` é a folha única (antes eram app.css, v2.css e v3.css, fundidos na mesma ordem de cascata). Tem três seções: base, repaginação (tema escuro grafite com acento menta, nav com pílula, diálogos com alça) e profundidade (cartões em camadas, resumo com malha de luz, nav flutuante no celular), mais correções de acessibilidade no fim.
-- **Visual anterior:** uma cópia completa do layout antigo está em `../caixinha-app-layout-anterior`.
 - Revisado em 440 e 320 pt (todas as abas, claro e escuro, PIN, diálogos). Ainda falta conferir em iPhone de verdade o vidro da nav e a pílula do ícone.
 
 ## Histórico e proteções
@@ -73,9 +75,6 @@ Entrada discreta no fim de **Ajustes → Administração → Rifas**, fora das a
 - **Hoje/Agenda** mostram também até 3 meses anteriores em aberto (só meses em que já houve lançamentos).
 - **"Todos pagos"** marca só quem ainda não pagou; quem pagou com atraso ou dividiu a cota não é alterado.
 - **Backup:** aviso em Ajustes quando passam 10 dias sem exportar e sem Drive em dia.
-
-## Visual v3 "Profundidade" (ativo)
-Para limpar regras duplicadas, mexa por componente em passos pequenos e suba a versão do cache em `sw.js` a cada mudança.
 
 ## Ativar o Google Drive
 1. Em console.cloud.google.com, crie um projeto com a **Google Drive API** ativa e o escopo `drive.file`.
