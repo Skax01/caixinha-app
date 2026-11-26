@@ -1,0 +1,25 @@
+# Backups e exportações com dados reais: NUNCA subir
+caixinha-*.json
+caixinha-*.cifrado.json
+caixinha-relatorio-*.xls
+caixinha-relatorio-*.csv
+numeros-disponiveis-*.png
+
+# Ambiente e lixo do sistema
+.env
+.env.*
+*.log
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor e ferramentas locais
+.vscode/
+.idea/
+.claude/
+__pycache__/
+node_modules/
+
+# Guia privado de trabalho: nunca subir
+docs/
+PLAYBOOK*.md
