@@ -29,18 +29,18 @@ tests/core.test.js  testes do núcleo:  node tests/core.test.js
 Para testar localmente: `python -m http.server 8765` dentro da pasta e abra `http://localhost:8765`.
 
 ## Segurança
-- **PIN de 6 dígitos com criptografia de verdade.** Com PIN, os dados são cifrados (AES-GCM, chave derivada do PIN com PBKDF2-SHA-256, 600 mil iterações) e o texto puro é apagado. A chave só existe na memória: ao bloquear, o app descarta os dados da memória e da tela.
-- **Bloqueio automático** após 2 minutos fora da tela ou 5 minutos sem uso, e botão de bloquear no topo. Excluir, desfazer pagamento, exportar, importar, restaurar do Drive, desconectar o Drive e remover o PIN pedem o PIN de novo.
-- **Esqueci o PIN:** não há recuperação, porque o PIN é a chave. É possível apagar os dados do aparelho e restaurar um backup (arquivo ou Drive).
-- **Limite honesto:** um PIN numérico pode ser descoberto por força bruta por quem copiar o armazenamento do aparelho (as 600 mil iterações encarecem isso). O limite de tentativas errôneas (espera crescente) só vale na tela do app e não impede quem tem uma cópia do armazenamento. A proteção real contra um atacante dedicado é o bloqueio do próprio aparelho.
-- **Backups e importação são validados.** Tudo que entra (arquivo, Drive, armazenamento) passa por `CX.sanitize()`: tipos, limites e IDs são forçados, chaves perigosas (`__proto__`) são descartadas. Um backup adulterado não consegue injetar HTML/JS.
-- **CSP estrita** (sem scripts nem estilos inline; só o próprio site e o login/API do Google), `referrer` desligado e bloqueio de uso dentro de iframes.
-- **CSV seguro:** células que começam com `=`, `+`, `-` ou `@` são neutralizadas (injeção de fórmula).
-- **Exportar com senha:** gera um arquivo `.cifrado.json` que só abre com a senha escolhida. O arquivo de backup normal contém os dados reais em texto aberto: guarde em lugar seguro.
-- **Google Drive:** escopo `drive.file` (o app só vê os arquivos que ele criou); o token fica só na memória. O backup no Drive **não** é cifrado pelo PIN: é um JSON em texto aberto, protegido apenas pela sua conta Google (use verificação em duas etapas). Para ter o arquivo cifrado, use *Exportar com senha*.
-- **Migração de versão antiga:** ao atualizar de um modelo antigo, o app guarda uma cópia dos dados antigos em texto aberto no aparelho (`caixinha:antes-da-v2`) até você ativar o PIN; ativar o PIN apaga essa cópia.
-- **Rifas:** o hash do PIN do administrador não entra no arquivo de backup.
-- **Repositório:** o `.gitignore` bloqueia backups e exportações (`caixinha-*.json`, `.xls`, `.csv`). O ID do cliente Google em `js/config.js` é público por natureza; nunca coloque segredos ou chaves privadas no repositório.
+- **PIN com criptografia.** Com PIN, os dados do aparelho são cifrados e só abrem depois de digitá-lo. Ao bloquear, o app descarta os dados da tela e da memória.
+- **Bloqueio automático** quando você sai da tela ou fica um tempo sem usar, e botão de bloquear no topo. Ações sensíveis (excluir, exportar, importar, restaurar, remover o PIN) pedem o PIN de novo.
+- **Esqueci o PIN:** não há recuperação, porque o PIN é a chave. Dá para apagar os dados do aparelho e restaurar um backup.
+- **O que o PIN protege:** curiosos que pegarem o seu aparelho. Não protege contra quem tem acesso técnico ao aparelho desbloqueado. Use também o bloqueio de tela do celular e evite PINs óbvios (datas, sequências).
+- **Dados que entram são validados:** backups, arquivos e dados do Drive passam por verificação antes de serem usados.
+- **Backups:**
+  - O backup normal e o do Google Drive contêm os dados em texto aberto. O do Drive fica protegido apenas pela sua conta Google (ative a verificação em duas etapas).
+  - Para um arquivo protegido, use *Exportar com senha*.
+  - Guarde os arquivos em lugar seguro e nunca os suba para o repositório.
+- **Sem dados no repositório:** este repositório contém só o código. Backups e exportações são bloqueados pelo `.gitignore`.
+
+Para reportar uma falha de segurança, veja [SECURITY.md](SECURITY.md).
 
 ## Relatórios
 Em Caixinha → Ver relatório: tabela por membro ou mês a mês, com três saídas.
@@ -85,7 +85,7 @@ Entrada discreta no fim de **Ajustes → Administração → Rifas**, fora das a
 5. A cada alteração (1,5 s depois) o app grava `caixinha-atual.json` e uma cópia por dia. Se o login expirar (cerca de 1 hora), aparece "Backup pendente": toque em Sincronizar agora. Se esse envio falhar, o app tenta de novo a cada 20 minutos enquanto houver alteração pendente e o login do Google estiver ativo.
 
 ## Atualizando de uma versão antiga
-Os dados são migrados sozinhos ao abrir (membros, pagamentos, multas e empréstimos do modelo antigo viram o modelo de parcelas). Quem já usava PIN de 4 dígitos digita o PIN uma vez e o app passa a cifrar os dados; troque por um PIN de 6 dígitos em Ajustes. A versão antiga do Face ID foi removida: ela só escondia a tela e não protegia os dados.
+Os dados são migrados sozinhos ao abrir (membros, pagamentos, multas e empréstimos do modelo antigo viram o modelo de parcelas). Quem já usava PIN antigo digita o PIN uma vez e o app passa a cifrar os dados; troque por um PIN de 6 dígitos em Ajustes. A versão antiga do Face ID foi removida: ela só escondia a tela e não protegia os dados.
 
 ## Cuidados
 - Nunca suba arquivos `caixinha-*.json` para o repositório: têm os dados reais.
