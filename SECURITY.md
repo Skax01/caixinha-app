@@ -1,7 +1,7 @@
 # Segurança
 
 ## Reportar uma falha
-Não abra uma issue pública com detalhes de uma vulnerabilidade. Envie uma mensagem privada ao mantenedor do repositório (GitHub: Skax01) descrevendo o problema e como reproduzi-lo. A resposta costuma vir em poucos dias.
+Não abra uma issue pública com detalhes de uma vulnerabilidade. Use a aba **Security** do repositório → **Report a vulnerability**, que abre um relato privado ao mantenedor. Descreva o problema e como reproduzi-lo. A resposta costuma vir em poucos dias.
 
 ## Escopo
 O app é estático e guarda os dados no aparelho do usuário. Interessam relatos sobre vazamento de dados, execução de código injetado por backup ou importação, e falhas na proteção do PIN.
