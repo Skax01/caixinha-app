@@ -52,7 +52,9 @@
   /* ---------- sanitização ---------- */
   var ID_RE = /^[A-Za-z0-9_-]{1,64}$/, YM_RE = /^(\d{4})-(0[1-9]|1[0-2])$/;
   var obj = function (v) { return v && typeof v === 'object' && !Array.isArray(v); };
+  // eslint-disable-next-line no-control-regex -- intencional: remove caracteres de controle
   function sstr(v, max) { return String(v == null ? '' : v).replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max || 80); }
+  // eslint-disable-next-line no-control-regex -- intencional: remove caracteres de controle (mantém \n)
   function smsg(v, max) { return String(v == null ? '' : v).replace(/[\u0000-\u0009\u000b-\u001f\u007f]/g, '').trim().slice(0, max || 1500); }
   function sint(v, lo, hi, d) { v = Math.floor(+v); if (!isFinite(v)) v = d; return Math.min(hi, Math.max(lo, v)); }
   function sflt(v, lo, hi, d) { v = +v; if (!isFinite(v)) v = d; return r2(Math.min(hi, Math.max(lo, v))); }
@@ -214,7 +216,7 @@
     S.ano = sint(raw.ano, 2000, 2199, t.getFullYear()); S.mes = sint(raw.mes, 0, 11, t.getMonth());
     S.multaRs = smoney(raw.multaRs);
     var A0 = raw.adm; /* registro do PIN do administrador: só o hash (sal + PBKDF2), nunca o PIN */
-    if (obj(A0) && /^[A-Za-z0-9+\/=]{16,64}$/.test(A0.s) && /^[A-Za-z0-9+\/=]{32,88}$/.test(A0.h)) S.adm = { s: A0.s, h: A0.h, it: sint(A0.it, 100000, 2000000, 310000) };
+    if (obj(A0) && /^[A-Za-z0-9+/=]{16,64}$/.test(A0.s) && /^[A-Za-z0-9+/=]{32,88}$/.test(A0.h)) S.adm = { s: A0.s, h: A0.h, it: sint(A0.it, 100000, 2000000, 310000) };
     if (obj(raw.msgs)) Object.keys(raw.msgs).forEach(function (k) { if (Object.prototype.hasOwnProperty.call(MSG_KEYS, k)) { var m = smsg(raw.msgs[k]); if (m) S.msgs[k] = m; } });
     S.loans = (Array.isArray(raw.loans) ? raw.loans : []).slice(0, 500).map(sanitizeLoan).filter(Boolean);
     return S;

@@ -14,10 +14,10 @@
   function b64(buf) { var a = new Uint8Array(buf), s = ''; for (var i = 0; i < a.length; i++) s += String.fromCharCode(a[i]); return btoa(s); }
   function unb64(s) { var b = atob(s), a = new Uint8Array(b.length); for (var i = 0; i < a.length; i++) a[i] = b.charCodeAt(i); return a; }
   function rnd(n) { return crypto.getRandomValues(new Uint8Array(n)); }
-  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
-  function lsSet(k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } }
-  function lsDel(k) { try { localStorage.removeItem(k); } catch (e) { /* sem acesso */ } }
-  function json(k) { try { return JSON.parse(lsGet(k) || 'null'); } catch (e) { return null; } }
+  function lsGet(k) { try { return localStorage.getItem(k); } catch { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); return true; } catch { return false; } }
+  function lsDel(k) { try { localStorage.removeItem(k); } catch { /* sem acesso */ } }
+  function json(k) { try { return JSON.parse(lsGet(k) || 'null'); } catch { return null; } }
 
   async function derive(secret, salt, it) {
     var base = await subtle.importKey('raw', enc.encode(secret), 'PBKDF2', false, ['deriveKey']);
@@ -48,7 +48,7 @@
       return d === 0;
     },
     /* Lê o estado em texto puro (sem PIN, ou durante a migração). */
-    readPlain: function () { var t = lsGet(KS); if (!t) return null; try { return JSON.parse(t); } catch (e) { return null; } },
+    readPlain: function () { var t = lsGet(KS); if (!t) return null; try { return JSON.parse(t); } catch { return null; } },
 
     /* Liga a criptografia: guarda o estado cifrado e apaga o texto puro. */
     enable: async function (pin, state) {
@@ -60,13 +60,13 @@
     unlock: async function (pin) {
       var r = json(KV); if (!validRec(r)) throw new Error('sem cofre');
       var k = await derive(pin, unb64(r.s), r.it), txt;
-      try { txt = await open(k, r.iv, r.ct); } catch (e) { throw new Error('pin'); }
+      try { txt = await open(k, r.iv, r.ct); } catch { throw new Error('pin'); }
       key = k; return JSON.parse(txt);
     },
     /* Confere o PIN sem alterar a sessão (para confirmar ações sensíveis). */
     verify: async function (pin) {
       var r = json(KV); if (!validRec(r)) return false;
-      try { await open(await derive(pin, unb64(r.s), r.it), r.iv, r.ct); return true; } catch (e) { return false; }
+      try { await open(await derive(pin, unb64(r.s), r.it), r.iv, r.ct); return true; } catch { return false; }
     },
     disable: function (state) {
       if (!lsSet(KS, JSON.stringify(state))) throw new Error('storage');
@@ -86,7 +86,7 @@
       return chain;
     },
     wipe: function () {
-      try { Object.keys(localStorage).filter(function (k) { return k.indexOf('caixinha') === 0; }).forEach(function (k) { localStorage.removeItem(k); }); } catch (e) { /* sem acesso */ }
+      try { Object.keys(localStorage).filter(function (k) { return k.indexOf('caixinha') === 0; }).forEach(function (k) { localStorage.removeItem(k); }); } catch { /* sem acesso */ }
       key = null;
     },
 
@@ -95,10 +95,10 @@
       var salt = rnd(16), k = await derive(pass, salt, IT), s = await seal(k, text);
       return JSON.stringify({ app: 'caixinha', enc: 1, it: IT, s: b64(salt), iv: s.iv, ct: s.ct });
     },
-    isEncrypted: function (text) { try { var d = JSON.parse(text); return !!(d && d.enc === 1 && validRec(d)); } catch (e) { return false; } },
+    isEncrypted: function (text) { try { var d = JSON.parse(text); return !!(d && d.enc === 1 && validRec(d)); } catch { return false; } },
     decryptText: async function (text, pass) {
       var d = JSON.parse(text);
-      try { return await open(await derive(pass, unb64(d.s), d.it), d.iv, d.ct); } catch (e) { throw new Error('senha'); }
+      try { return await open(await derive(pass, unb64(d.s), d.it), d.iv, d.ct); } catch { throw new Error('senha'); }
     },
 
     /* PIN do administrador (área de rifas): guarda só sal + hash PBKDF2, nunca o PIN. */

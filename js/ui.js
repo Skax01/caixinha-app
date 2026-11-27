@@ -1,7 +1,7 @@
 /* ui.js — componentes de interface: ícones, avisos, diálogos (<dialog> nativo), teclado de PIN. */
 (function () {
   'use strict';
-  var CX = window.CX, esc = CX.u.esc, V = CX.vault, ui = CX.ui = {};
+  var CX = window.CX, esc = CX.u.esc, ui = CX.ui = {};
   var seq = 0;
 
   ui.icon = function (n, cls) { return '<svg class="i' + (cls ? ' ' + cls : '') + '" aria-hidden="true"><use href="#i-' + n + '"/></svg>'; };
@@ -22,14 +22,14 @@
     box.appendChild(e); ui.raiseToasts(); ui.announce(text);
     /* o aviso com "Desfazer" dura mais e fica parado enquanto o mouse ou o foco estão nele (WCAG 2.2.1) */
     var ms = opt.undo ? 12000 : 3200;
-    function arm() { clearTimeout(toastT); toastT = setTimeout(function () { e.remove(); if (!box.children.length) { try { box.hidePopover(); } catch (x) { /* sem popover */ } } }, ms); }
+    function arm() { clearTimeout(toastT); toastT = setTimeout(function () { e.remove(); if (!box.children.length) { try { box.hidePopover(); } catch { /* sem popover */ } } }, ms); }
     if (opt.undo) { e.addEventListener('mouseenter', function () { clearTimeout(toastT); }); e.addEventListener('focusin', function () { clearTimeout(toastT); }); e.addEventListener('mouseleave', arm); e.addEventListener('focusout', arm); }
     arm();
   };
   /* Os avisos ficam numa camada acima dos diálogos (popover); reabrir leva o aviso ao topo de novo. */
   ui.raiseToasts = function () {
     var box = document.getElementById('toasts'); if (!box || !box.children.length || !box.showPopover) return;
-    try { if (box.matches(':popover-open')) box.hidePopover(); box.showPopover(); } catch (x) { /* sem popover */ }
+    try { if (box.matches(':popover-open')) box.hidePopover(); box.showPopover(); } catch { /* sem popover */ }
   };
 
   /* ---------- diálogos ---------- */
