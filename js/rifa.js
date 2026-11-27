@@ -170,7 +170,7 @@
   /* Imagem PNG com os números disponíveis (para enviar no WhatsApp): no celular abre o menu de compartilhar; no computador baixa o arquivo. */
   async function freePng(r) {
     var fr = R.free(r), c = cxOf(r); if (!fr.length) return ui.toast('Todos os números já foram atribuídos.');
-    if (document.fonts && document.fonts.load) { try { await document.fonts.load('800 56px Inter'); await document.fonts.load('700 44px Inter'); } catch (e) { /* usa a fonte padrão */ } }
+    if (document.fonts && document.fonts.load) { try { await document.fonts.load('800 56px Inter'); await document.fonts.load('700 44px Inter'); } catch { /* usa a fonte padrão */ } }
     var PER = 120, parts = []; for (var q = 0; q < fr.length; q += PER) parts.push(fr.slice(q, q + PER));
     var W = 1136, padX = 56, gap = 14, top = 400, F = 'Inter, system-ui, Arial, sans-serif', blobs = [];
     var prem = r.prem.map(function (p, i) { return ord(i + 1) + ' ' + p; }).join('  ·  ');

@@ -1,3 +1,4 @@
+/* global google -- carregado de accounts.google.com sob demanda */
 /* drive.js — backup opcional no Google Drive (escopo drive.file: o app só enxerga os arquivos que ele mesmo criou).
    O token de acesso fica apenas na memória; nada de credencial é gravado no aparelho além do ID do cliente
    (que é público) e de dois marcadores ("conectado" e "backup pendente"). */
@@ -5,8 +6,8 @@
   'use strict';
   var CX = window.CX, esc = CX.u.esc, p2 = CX.u.p2, ui = CX.ui, GK = 'caixinha:google';
   var CID_RE = /^[0-9]+-[a-z0-9]+\.apps\.googleusercontent\.com$/i, API = 'https://www.googleapis.com/';
-  function gget(k) { try { return localStorage.getItem(GK + ':' + k) || ''; } catch (e) { return ''; } }
-  function gset(k, v) { try { if (v) localStorage.setItem(GK + ':' + k, v === true ? '1' : v); else localStorage.removeItem(GK + ':' + k); } catch (e) { /* sem acesso */ } }
+  function gget(k) { try { return localStorage.getItem(GK + ':' + k) || ''; } catch { return ''; } }
+  function gset(k, v) { try { if (v) localStorage.setItem(GK + ':' + k, v === true ? '1' : v); else localStorage.removeItem(GK + ':' + k); } catch { /* sem acesso */ } }
   var cfg = (CX.config && CX.config.googleClientId) || '';
   var G = { cid: CID_RE.test(cfg) ? cfg : (CID_RE.test(gget('cid')) ? gget('cid') : ''), tok: null, exp: 0, folder: null, linked: gget('linked') === '1', pend: gget('pend') === '1', ok: false, at: null, err: '', busy: false, timer: null };
   var D = CX.drive = { G: G, changed: 0 };
@@ -87,7 +88,7 @@
     return CX.parseBackup(txt);   // lança se inválido
   }
   async function restoreFrom(id) {
-    var st; try { st = await readBackup(id); } catch (x) { ui.toast('Backup do Drive inválido. Nada foi alterado.'); return false; }
+    var st; try { st = await readBackup(id); } catch { ui.toast('Backup do Drive inválido. Nada foi alterado.'); return false; }
     await app().replace(st);
     ui.toast('Restaurados ' + st.cxs.reduce(function (s, c) { return s + c.pess.length; }, 0) + ' membros e ' + st.loans.length + ' empréstimos');
     return true;
@@ -135,10 +136,10 @@
         if (!r) return; pick = l[+r.act];
       }
       if (await ui.confirm({ title: 'Restaurar do Drive?', msg: 'Backup de ' + fmtWhen(pick.modifiedTime) + '. Os dados deste aparelho serão substituídos pelos do Drive.', yes: 'Restaurar', danger: true })) await restoreFrom(pick.id);
-    } catch (e) { ui.toast('Não foi possível ler o Drive. Tente de novo.'); }
+    } catch { ui.toast('Não foi possível ler o Drive. Tente de novo.'); }
   };
   D.disconnect = function () {
-    try { if (G.tok && window.google) google.accounts.oauth2.revoke(G.tok, function () { }); } catch (e) { /* sem acesso */ }
+    try { if (G.tok && window.google) google.accounts.oauth2.revoke(G.tok, function () { }); } catch { /* sem acesso */ }
     G.tok = null; G.exp = 0; G.linked = false; G.pend = false; G.ok = false; G.folder = null; gset('linked', false); gset('pend', false); gset('acct', false); gset('mail', false);
     D.refresh(); ui.toast('Google Drive desconectado');
   };

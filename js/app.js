@@ -13,7 +13,7 @@
   /* ---------- tema ---------- */
   function setTheme(t) {
     document.documentElement.setAttribute('data-theme', t);
-    try { localStorage.setItem('caixinha:theme', t); } catch (e) { /* sem acesso */ }
+    try { localStorage.setItem('caixinha:theme', t); } catch { /* sem acesso */ }
     var m = document.querySelector('meta[name=theme-color]'); if (m) m.setAttribute('content', t === 'dark' ? '#0e1215' : '#1b6b45');
     themeIcon();
   }
@@ -51,11 +51,11 @@
   };
   A.backup = function () { return A.S ? CX.backupText(A.S) : null; };
   /* data do último backup em arquivo (só a data, nada sensível) */
-  A.markExport = function () { try { localStorage.setItem('caixinha:lastExport', String(Date.now())); } catch (e) { /* sem acesso */ } A.render(); };
+  A.markExport = function () { try { localStorage.setItem('caixinha:lastExport', String(Date.now())); } catch { /* sem acesso */ } A.render(); };
   A.backupStale = function () {
     if (!A.S || (CX.drive && CX.drive.linkedNow() && !CX.drive.warn())) return false;
     var empty = !A.S.loans.length && !A.S.cxs.some(function (c) { return c.pess.length; }); if (empty) return false;
-    var t = 0; try { t = +localStorage.getItem('caixinha:lastExport') || 0; } catch (e) { /* sem acesso */ }
+    var t = 0; try { t = +localStorage.getItem('caixinha:lastExport') || 0; } catch { /* sem acesso */ }
     return !t || Date.now() - t > 10 * 864e5;
   };
   A.replace = async function (st) { st.adm = A.S ? A.S.adm : null; /* o PIN do administrador não vem de backup */ A.S = st; LSOK = !!(await V.persist(A.S)); A.render(); D.soon(); };
@@ -82,19 +82,19 @@
   ACT.pinon = async function () {
     if (!V.supported) return ui.toast('O PIN só funciona em https');
     var pin = await pinCreate(); if (!pin) return;
-    try { await V.enable(pin, A.S); ui.toast('PIN ativado. Seus dados agora estão criptografados.'); } catch (e) { ui.toast('Não foi possível ativar o PIN. Nada foi alterado.'); }
+    try { await V.enable(pin, A.S); ui.toast('PIN ativado. Seus dados agora estão criptografados.'); } catch { ui.toast('Não foi possível ativar o PIN. Nada foi alterado.'); }
     A.render();
   };
   ACT.pinnew = async function () {
     if (!await A.confirmPin('PIN atual')) return;
     var pin = await pinCreate(); if (!pin) return;
-    try { await V.enable(pin, A.S); ui.toast('PIN trocado'); } catch (e) { ui.toast('Não foi possível trocar o PIN.'); }
+    try { await V.enable(pin, A.S); ui.toast('PIN trocado'); } catch { ui.toast('Não foi possível trocar o PIN.'); }
     A.render();
   };
   ACT.pinoff = async function () {
     if (!await A.confirmPin('Confirme o PIN')) return;
     if (!await ui.confirm({ title: 'Remover o PIN?', msg: 'Os dados deste aparelho deixam de ser criptografados e o app deixa de pedir PIN.', yes: 'Remover PIN', danger: true })) return;
-    try { V.disable(A.S); ui.toast('PIN removido'); } catch (e) { ui.toast('Não foi possível remover o PIN.'); }
+    try { V.disable(A.S); ui.toast('PIN removido'); } catch { ui.toast('Não foi possível remover o PIN.'); }
     A.render();
   };
   function forgot() {
@@ -112,7 +112,7 @@
           if (legacy) { if (!await V.legacyCheck(p)) throw new Error('pin'); st = CX.sanitize(V.readPlain()); await V.enable(p, st); }
           else st = CX.sanitize(await V.unlock(p));
           V.passed(); return true;
-        } catch (e) { V.failed(); var w2 = V.waitLeft(); return w2 ? 'PIN incorreto. Aguarde ' + w2 + ' s.' : 'PIN incorreto'; }
+        } catch { V.failed(); var w2 = V.waitLeft(); return w2 ? 'PIN incorreto. Aguarde ' + w2 + ' s.' : 'PIN incorreto'; }
       }
     });
     if (!pin) return;
@@ -124,7 +124,7 @@
     if (!V.hasVault() || A.locked || !V.unlocked()) return;
     V.lock(); A.S = null; clearTimeout(idleT);
     if (A.tab === 'rf') { A.tab = 'cf'; A.RF = null; } /* a área de rifas pede o PIN de novo */
-    document.querySelectorAll('dialog').forEach(function (d) { try { d.close(); } catch (e) { /* já fechado */ } d.remove(); });
+    document.querySelectorAll('dialog').forEach(function (d) { try { d.close(); } catch { /* já fechado */ } d.remove(); });
     document.querySelectorAll('.lock').forEach(function (l) { l.remove(); });
     $('v').innerHTML = ''; $('nav').innerHTML = ''; $('toasts').innerHTML = ''; $('printroot').innerHTML = '';
     unlockFlow();
@@ -148,7 +148,7 @@
     var r = await ui.dialog({ title: 'Exportar com senha', msg: 'O arquivo só abre com esta senha. Guarde-a: sem ela não há como recuperar o backup.', fields: [{ l: 'Senha (mínimo 8 caracteres)', k: 'a', t: 'password', max: 100, cap: 'none' }, { l: 'Repita a senha', k: 'b', t: 'password', max: 100, cap: 'none' }], actions: [{ l: 'Exportar', k: 'ok' }, { l: 'Cancelar', k: null, c: 'g' }], check: function (v) { return v.a.length < 8 ? 'Use pelo menos 8 caracteres.' : v.a !== v.b ? 'As senhas não conferem.' : ''; } });
     if (!r) return;
     ui.toast('Criptografando…');
-    try { ui.download('caixinha-' + u.today() + '.cifrado.json', await V.encryptText(A.backup(), r.v.a)); A.markExport(); ui.toast('Backup cifrado exportado'); } catch (e) { ui.toast('Não foi possível criptografar.'); }
+    try { ui.download('caixinha-' + u.today() + '.cifrado.json', await V.encryptText(A.backup(), r.v.a)); A.markExport(); ui.toast('Backup cifrado exportado'); } catch { ui.toast('Não foi possível criptografar.'); }
   };
   ACT.imp = async function () { if (!await A.confirmPin('Confirme para importar')) return; $('fi').click(); };
   $('fi').onchange = function (e) {
@@ -161,11 +161,11 @@
         if (V.isEncrypted(txt)) {
           var p = await ui.dialog({ title: 'Backup com senha', fields: [{ l: 'Senha do arquivo', k: 'a', t: 'password', max: 100, cap: 'none' }], actions: [{ l: 'Abrir', k: 'ok' }, { l: 'Cancelar', k: null, c: 'g' }], check: function (v) { return v.a ? '' : 'Digite a senha.'; } });
           if (!p) return;
-          try { txt = await V.decryptText(txt, p.v.a); } catch (x) { return ui.toast('Senha incorreta ou arquivo danificado.'); }
+          try { txt = await V.decryptText(txt, p.v.a); } catch { return ui.toast('Senha incorreta ou arquivo danificado.'); }
         }
         var st = CX.parseBackup(txt);
         if (await ui.confirm({ title: 'Importar backup', msg: 'Isto substitui os dados atuais deste aparelho por ' + st.cxs.reduce(function (s, c) { return s + c.pess.length; }, 0) + ' membros e ' + st.loans.length + ' empréstimos do arquivo.', yes: 'Importar', danger: true })) { await A.replace(st); ui.toast('Backup importado'); }
-      } catch (x) { ui.toast('Arquivo inválido. Nada foi alterado.'); }
+      } catch { ui.toast('Arquivo inválido. Nada foi alterado.'); }
     };
     rd.readAsText(f);
   };
@@ -197,7 +197,7 @@
     }
     var raw = V.readPlain();
     A.S = CX.sanitize(raw);
-    if (raw && !raw.v) { try { localStorage.setItem('caixinha:antes-da-v2', JSON.stringify(raw)); } catch (e) { /* sem espaço */ } }
+    if (raw && !raw.v) { try { localStorage.setItem('caixinha:antes-da-v2', JSON.stringify(raw)); } catch { /* sem espaço */ } }
     V.persist(A.S).then(function (ok) { LSOK = !!ok; badge(); });
     A.render(); armIdle(); D.preload();
     if (navigator.storage && navigator.storage.persist) navigator.storage.persist();
